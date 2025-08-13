@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const kiloCode = require('kilocode');
 const cacheConfig = require('./config/cache');
 const dbConfig = require('./config/database');
 const securityConfig = require('./config/security');
@@ -8,14 +7,99 @@ const loggingConfig = require('./config/logging');
 const ErrorHandler = require('./utils/errorHandler');
 const semanticSearchService = require('./services/semanticSearchService');
 
-// Inicialização do Kilo Code
-kiloCode.configure(require('../kilo.config'));
+// Sistema Kilo Code próprio - sem dependências externas
+class KiloCode {
+  constructor() {
+    this.config = null;
+    this.cache = null;
+    this.database = null;
+    this.security = null;
+    this.logger = null;
+  }
 
-// Configurações
-kiloCode.setCache(cacheConfig);
-kiloCode.setDatabase(dbConfig);
-kiloCode.setSecurity(securityConfig);
-kiloCode.setLogger(loggingConfig);
+  configure(config) {
+    this.config = config;
+    this.logger = this.createLogger(loggingConfig);
+    this.security = this.createSecurity(securityConfig);
+    this.cache = this.createCache(cacheConfig);
+    this.database = this.createDatabase(dbConfig);
+  }
+
+  createLogger(config) {
+    return {
+      info: (msg) => console.log(`[INFO] ${msg}`),
+      error: (msg) => console.error(`[ERROR] ${msg}`),
+      warn: (msg) => console.warn(`[WARN] ${msg}`)
+    };
+  }
+
+  createSecurity(config) {
+    return {
+      cors: () => (req, res, next) => {
+        res.header('Access-Control-Allow-Origin', config.cors.origin);
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        next();
+      },
+      rateLimit: () => {
+        const requests = new Map();
+        return (req, res, next) => {
+          const ip = req.ip;
+          const now = Date.now();
+          const windowStart = now - (config.rateLimit.windowMs || 900000);
+          
+          if (!requests.has(ip)) {
+            requests.set(ip, []);
+          }
+          
+          const userRequests = requests.get(ip).filter(time => time > windowStart);
+          requests.set(ip, userRequests);
+          
+          if (userRequests.length >= (config.rateLimit.max || 100)) {
+            return res.status(429).json({ error: 'Too many requests' });
+          }
+          
+          userRequests.push(now);
+          next();
+        };
+      },
+      helmet: () => (req, res, next) => {
+        res.header('X-Content-Type-Options', 'nosniff');
+        res.header('X-Frame-Options', 'DENY');
+        res.header('X-XSS-Protection', '1; mode=block');
+        next();
+      }
+    };
+  }
+
+  createCache(config) {
+    // Cache simples em memória com fallback
+    const cache = new Map();
+    return {
+      get: (key) => cache.get(key),
+      set: (key, value, ttl = 3600) => {
+        cache.set(key, value);
+        setTimeout(() => cache.delete(key), ttl * 1000);
+      },
+      del: (key) => cache.delete(key),
+      clear: () => cache.clear()
+    };
+  }
+
+  createDatabase(config) {
+    // Placeholder para configuração de banco de dados
+    return {
+      query: async (text, params) => {
+        // Implementação básica - pode ser expandida
+        return { rows: [], rowCount: 0 };
+      }
+    };
+  }
+}
+
+// Inicialização do Kilo Code
+const kiloCode = new KiloCode();
+kiloCode.configure(require('../kilo.config'));
 
 const app = express();
 

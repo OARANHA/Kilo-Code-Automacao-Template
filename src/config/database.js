@@ -1,17 +1,23 @@
 module.exports = {
   host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER || 'admin',
-  password: process.env.DB_PASS || 'senha_segura',
-  database: process.env.DB_NAME || 'meu_banco',
+  port: parseInt(process.env.DB_PORT) || 5432,
+  user: process.env.DB_USER, // OBRIGATÓRIO - sem valor padrão
+  password: process.env.DB_PASSWORD, // OBRIGATÓRIO - sem valor padrão
+  database: process.env.DB_NAME, // OBRIGATÓRIO - sem valor padrão
   pool: {
-    max: 20, // Máximo de conexões
-    min: 5,  // Mínimo de conexões
-    idle: 30000 // Tempo de inatividade
+    max: parseInt(process.env.DB_POOL_MAX) || 20,
+    min: parseInt(process.env.DB_POOL_MIN) || 5,
+    idle: parseInt(process.env.DB_POOL_IDLE) || 30000,
+    acquire: parseInt(process.env.DB_POOL_ACQUIRE) || 60000
   },
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   // Otimização de queries
-  indexes: ['users.email', 'products.id'],
+  indexes: process.env.DB_INDEXES ? process.env.DB_INDEXES.split(',') : [],
   batch: {
-    size: 1000 // Tamanho do lote para inserções
-  }
+    size: parseInt(process.env.DB_BATCH_SIZE) || 1000
+  },
+  // Timeout de conexão
+  connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 30000,
+  // Logging de queries (apenas em desenvolvimento)
+  logging: process.env.NODE_ENV === 'development'
 };

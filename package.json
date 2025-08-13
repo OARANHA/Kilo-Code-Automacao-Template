@@ -1,7 +1,7 @@
 {
   "name": "kilo-template",
-  "version": "1.0.0",
-  "description": "Template robusto para Kilo Code com busca semântica e agente de IA",
+  "version": "2.0.0",
+  "description": "Template automático e não invasivo para Kilo Code com busca semântica",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
@@ -13,10 +13,13 @@
     "health-check": "node .killo-workspace/health-check/project-scanner.js",
     "recover": "./.killo-workspace/scripts/kilo-recover.sh",
     "bootstrap": "./.killo-workspace/scripts/kilo-bootstrap.sh",
+    "setup:auto": "node .killo-workspace/scripts/auto-setup.js",
+    "setup:project": "node .killo-workspace/scripts/project-setup.js",
+    "integrate": "node .killo-workspace/scripts/integrate-smart.js",
     "test": "jest",
-    "postinstall": "chmod +x scripts/*.sh",
-    "verify-collection": "bash .killo-workspace/scripts/verify-collection.sh"
-
+    "lint": "eslint src/ scripts/",
+    "security-check": "node .killo-workspace/scripts/security-check.js",
+    "postinstall": "chmod +x scripts/*.sh && chmod +x .killo-workspace/scripts/*.sh"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -24,13 +27,40 @@
     "redis": "^4.6.7",
     "pg": "^8.11.3",
     "jsonwebtoken": "^9.0.2",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "helmet": "^7.0.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^6.7.0",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
     "jest": "^29.5.0",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "eslint": "^8.42.0",
+    "prettier": "^2.8.8"
   },
-  "keywords": ["kilo", "template", "semantic-search", "ai-agent"],
-  "author": "Seu Nome",
-  "license": "MIT"
+  "keywords": [
+    "kilo",
+    "template",
+    "semantic-search",
+    "ai-agent",
+    "automation",
+    "non-invasive",
+    "auto-setup"
+  ],
+  "author": "Kilo Code Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OARANHA/Kilo-Code-Automacao-Template.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OARANHA/Kilo-Code-Automacao-Template/issues"
+  },
+  "homepage": "https://github.com/OARANHA/Kilo-Code-Automacao-Template#readme"
 }
